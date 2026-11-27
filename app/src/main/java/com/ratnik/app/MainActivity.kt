@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
     private val client = OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).build()
-    private val serverUrl = "http://127.0.0.1:8080"
+    private val serverUrl = "http://127.0.0.1:8080" // Замени на свой IP при тесте на другом телефоне
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
